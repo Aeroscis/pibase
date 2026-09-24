@@ -12,39 +12,43 @@
  *
  * Exit code decides; the last line is a greppable evidence line.
  */
-#include "pibase/pi_base.h"
-
-#include <stdio.h>
 #include <stddef.h>
+#include <stdio.h>
+
+#include "pibase/pi_base.h"
 
 /* CHECK() is deliberately applied to compile-time constants here - the result
  * code sign rule *is* a constant, and asserting it is the point of the test.
  * MSVC calls that "conditional expression is constant"; silence it. */
 #if defined(_MSC_VER)
-#  pragma warning(disable : 4127)
+    #pragma warning(disable:4127)
 #endif
 
-static int g_checks = 0;
+static int g_checks   = 0;
 static int g_failures = 0;
 
-#define CHECK(cond)                                                             \
-    do {                                                                        \
-        ++g_checks;                                                             \
-        if (!(cond)) {                                                          \
-            ++g_failures;                                                       \
-            printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #cond);               \
-        }                                                                       \
+#define CHECK(cond)                                                \
+    do                                                             \
+    {                                                              \
+        ++g_checks;                                                \
+        if (!(cond))                                               \
+        {                                                          \
+            ++g_failures;                                          \
+            printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #cond); \
+        }                                                          \
     } while (0)
 
-#define CHECK_EQ_INT(a, b)                                                      \
-    do {                                                                        \
-        ++g_checks;                                                             \
-        long long va_ = (long long)(a), vb_ = (long long)(b);                   \
-        if (va_ != vb_) {                                                       \
-            ++g_failures;                                                       \
-            printf("FAIL %s:%d: %s == %s (%lld != %lld)\n",                     \
-                   __FILE__, __LINE__, #a, #b, va_, vb_);                       \
-        }                                                                       \
+#define CHECK_EQ_INT(a, b)                                    \
+    do                                                        \
+    {                                                         \
+        ++g_checks;                                           \
+        long long va_ = (long long)(a), vb_ = (long long)(b); \
+        if (va_ != vb_)                                       \
+        {                                                     \
+            ++g_failures;                                     \
+            printf("FAIL %s:%d: %s == %s (%lld != %lld)\n",   \
+                   __FILE__, __LINE__, #a, #b, va_, vb_);     \
+        }                                                     \
     } while (0)
 
 /* How many platform macros are defined: exactly one, always. */
@@ -67,18 +71,22 @@ static int defined_platform_count(void)
  * A minimal object built the way the header tells consumers to build one.
  * -------------------------------------------------------------------------- */
 typedef struct TestThing {
-    PiRefCountedBase base;   /* must be first */
+    PiRefCountedBase base; /* must be first */
     int              magic;
 } TestThing;
 
 static int g_destroy_calls = 0;
 
-static PiResult PI_CALL TestThing_QueryInterface(void* self_ptr, const PiGuid* iid, void** out)
+static PiResult PI_CALL TestThing_QueryInterface(void* self_ptr, PiGuid const* iid, void** out)
 {
     TestThing* me = (TestThing*)self_ptr;
-    if (!out) return PI_E_INVALIDARG;
+    if (!out)
+    {
+        return PI_E_INVALIDARG;
+    }
     *out = NULL;
-    if (iid && pi_guid_equal(iid, &PI_IID_UNKNOWN)) {
+    if (iid && pi_guid_equal(iid, &PI_IID_UNKNOWN))
+    {
         *out = &me->base.unk;
         pi_iunknown_add_ref(&me->base.unk);
         return PI_OK;
@@ -102,19 +110,18 @@ static void TestThing_Destroy(void* self_ptr)
     (void)self_ptr;
 }
 
-static const IPiUnknownVtbl s_test_vtbl = {
+static IPiUnknownVtbl const s_test_vtbl = {
     &TestThing_QueryInterface,
     &TestThing_AddRef,
-    &TestThing_Release
-};
+    &TestThing_Release};
 
 /* An identifier to compare against, in the RFC 4122 field order. */
-static const PiGuid s_iid_a = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
-                                      0xA1, 0x6C, 0x0D, 0xF2, 0x88, 0x37, 0x51, 0xBE);
-static const PiGuid s_iid_a_again = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
+static PiGuid const s_iid_a       = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
                                             0xA1, 0x6C, 0x0D, 0xF2, 0x88, 0x37, 0x51, 0xBE);
-static const PiGuid s_iid_b = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
-                                      0xA1, 0x6C, 0x0D, 0xF2, 0x88, 0x37, 0x51, 0xBF);
+static PiGuid const s_iid_a_again = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
+                                            0xA1, 0x6C, 0x0D, 0xF2, 0x88, 0x37, 0x51, 0xBE);
+static PiGuid const s_iid_b       = PI_GUID(0x9F3C1D42, 0x7B08, 0x4E55,
+                                            0xA1, 0x6C, 0x0D, 0xF2, 0x88, 0x37, 0x51, 0xBF);
 
 static void TestLayout(void)
 {
@@ -157,7 +164,7 @@ static void TestResultCodes(void)
      * code. This asserts the trap the partition rule exists to warn about:
      * had it been negative, PI_FAILED would report the wrong answer. */
     {
-        const PiResult accepted = (PiResult)1;
+        PiResult const accepted = (PiResult)1;
         CHECK(PI_SUCCEEDED(accepted));
         CHECK(!PI_FAILED(accepted));
     }
@@ -178,9 +185,9 @@ static void TestGuid(void)
 
 static void TestWindow(void)
 {
-    PiNativeWindow none = PI_INVALID_WINDOW;
-    int dummy = 0;
-    PiNativeWindow some = (PiNativeWindow)&dummy;
+    PiNativeWindow none  = PI_INVALID_WINDOW;
+    int            dummy = 0;
+    PiNativeWindow some  = (PiNativeWindow)&dummy;
 
     CHECK(!PI_IS_VALID_WINDOW(none));
     CHECK(PI_IS_VALID_WINDOW(some));
@@ -191,7 +198,7 @@ static void TestRefCountAndUnknown(void)
     TestThing thing;
 
     g_destroy_calls = 0;
-    thing.magic = 0x5A5A;
+    thing.magic     = 0x5A5A;
     pi_refcounted_init_with_destroy(&thing.base, &s_test_vtbl, &TestThing_Destroy);
 
     CHECK_EQ_INT(thing.base.ref_count, 1);
@@ -201,7 +208,7 @@ static void TestRefCountAndUnknown(void)
     /* add_ref / release through the helpers reach the vtable. */
     CHECK_EQ_INT(pi_iunknown_add_ref(&thing.base.unk), 2);
     CHECK_EQ_INT(pi_iunknown_release(&thing.base.unk), 1);
-    CHECK_EQ_INT(g_destroy_calls, 0);          /* still alive at 1 */
+    CHECK_EQ_INT(g_destroy_calls, 0); /* still alive at 1 */
 
     /* The last release runs destroy exactly once. */
     CHECK_EQ_INT(pi_iunknown_release(&thing.base.unk), 0);
@@ -226,17 +233,17 @@ static void TestRefCountAndUnknown(void)
 static void TestQueryInterface(void)
 {
     TestThing thing;
-    void* out = NULL;
+    void*     out = NULL;
 
     pi_refcounted_init(&thing.base, &s_test_vtbl);
 
     CHECK_EQ_INT(pi_iunknown_query_interface(&thing.base.unk, &PI_IID_UNKNOWN, &out), PI_OK);
     CHECK(out == (void*)&thing.base.unk);
-    CHECK_EQ_INT(thing.base.ref_count, 2);      /* QI hands out an add-ref'd pointer */
+    CHECK_EQ_INT(thing.base.ref_count, 2); /* QI hands out an add-ref'd pointer */
 
     out = (void*)&thing;
     CHECK_EQ_INT(pi_iunknown_query_interface(&thing.base.unk, &s_iid_b, &out), PI_E_NOINTERFACE);
-    CHECK(out == NULL);                         /* miss forces *out to NULL */
+    CHECK(out == NULL); /* miss forces *out to NULL */
 
     CHECK_EQ_INT(pi_iunknown_release(&thing.base.unk), 1);
     CHECK_EQ_INT(pi_iunknown_release(&thing.base.unk), 0);
@@ -252,6 +259,9 @@ int main(void)
     TestQueryInterface();
 
     printf("pibase: checks=%d failures=%d\n", g_checks, g_failures);
-    if (g_failures == 0) printf("ALL CHECKS PASSED\n");
+    if (g_failures == 0)
+    {
+        printf("ALL CHECKS PASSED\n");
+    }
     return g_failures == 0 ? 0 : 1;
 }

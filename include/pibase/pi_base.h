@@ -67,18 +67,18 @@ extern "C" {
  * undefined, so both `#if PI_PLATFORM_X` and `#ifdef PI_PLATFORM_X` behave.
  * -------------------------------------------------------------------------- */
 #if defined(_WIN32) || defined(_WIN64)
-#  define PI_PLATFORM_WINDOWS 1
+    #define PI_PLATFORM_WINDOWS 1
 #elif defined(__APPLE__)
-#  define PI_PLATFORM_MACOS 1
+    #define PI_PLATFORM_MACOS 1
 #else
-#  define PI_PLATFORM_LINUX 1
+    #define PI_PLATFORM_LINUX 1
 #endif
 
 /* Interlocked intrinsics for the reference count below. <intrin.h> rather than
  * <windows.h>: this is a public header, and windows.h would drag its whole
  * macro namespace (min/max, near/far, ...) into every consumer. */
 #if PI_PLATFORM_WINDOWS
-#  include <intrin.h>
+    #include <intrin.h>
 #endif
 
 /* --------------------------------------------------------------------------
@@ -98,23 +98,23 @@ extern "C" {
  * exist purely as the vocabulary members build on.
  * -------------------------------------------------------------------------- */
 #if PI_PLATFORM_WINDOWS
-#  define PI_EXPORT __declspec(dllexport)
-#  define PI_IMPORT __declspec(dllimport)
-#  define PI_LOCAL
+    #define PI_EXPORT __declspec(dllexport)
+    #define PI_IMPORT __declspec(dllimport)
+    #define PI_LOCAL
 #else
-#  define PI_EXPORT __attribute__((visibility("default")))
-#  define PI_IMPORT __attribute__((visibility("default")))
-#  define PI_LOCAL  __attribute__((visibility("hidden")))
+    #define PI_EXPORT __attribute__((visibility("default")))
+    #define PI_IMPORT __attribute__((visibility("default")))
+    #define PI_LOCAL  __attribute__((visibility("hidden")))
 #endif
 
 /* Calling convention: __stdcall on Windows, for maximum FFI compatibility.
  * Must be defined before any vtable that uses it. */
 #ifndef PI_CALL
-#  if PI_PLATFORM_WINDOWS
-#    define PI_CALL __stdcall
-#  else
-#    define PI_CALL
-#  endif
+    #if PI_PLATFORM_WINDOWS
+        #define PI_CALL __stdcall
+    #else
+        #define PI_CALL
+    #endif
 #endif
 
 /* --------------------------------------------------------------------------
@@ -129,18 +129,18 @@ extern "C" {
 typedef int32_t PiResult;
 
 #define PI_OK                  ((PiResult)0)
-#define PI_FAIL                ((PiResult)-1)
-#define PI_E_NOINTERFACE       ((PiResult)-2)
-#define PI_E_INVALIDARG        ((PiResult)-3)
-#define PI_E_OUTOFMEMORY       ((PiResult)-4)
-#define PI_E_NOTIMPL           ((PiResult)-5)
-#define PI_E_UNEXPECTED        ((PiResult)-6)
-#define PI_E_NOTFOUND          ((PiResult)-7)
-#define PI_E_MISSINGCAPABILITY ((PiResult)-8)  /* required host capability absent */
-#define PI_E_VERSIONMISMATCH   ((PiResult)-9)  /* api_version incompatible */
+#define PI_FAIL                ((PiResult) - 1)
+#define PI_E_NOINTERFACE       ((PiResult) - 2)
+#define PI_E_INVALIDARG        ((PiResult) - 3)
+#define PI_E_OUTOFMEMORY       ((PiResult) - 4)
+#define PI_E_NOTIMPL           ((PiResult) - 5)
+#define PI_E_UNEXPECTED        ((PiResult) - 6)
+#define PI_E_NOTFOUND          ((PiResult) - 7)
+#define PI_E_MISSINGCAPABILITY ((PiResult) - 8) /* required host capability absent */
+#define PI_E_VERSIONMISMATCH   ((PiResult) - 9) /* api_version incompatible */
 
-#define PI_SUCCEEDED(r)        ((PiResult)(r) >= 0)
-#define PI_FAILED(r)           ((PiResult)(r) < 0)
+#define PI_SUCCEEDED(r) ((PiResult)(r) >= 0)
+#define PI_FAILED(r)    ((PiResult)(r) < 0)
 
 /* Partition rule, mirroring the `>= 0x80000000` convention used for message
  * codes, event types and interface numbering: values <= -100 belong to apps and
@@ -154,7 +154,7 @@ typedef int32_t PiResult;
  * makes PI_FAILED() lie about the question it claims to answer, and it lies
  * quietly: code that writes its failure branch as `r < 0` silently classifies
  * "accepted" as "failed". */
-#define PI_APP_RESULT_BASE     ((PiResult)-100)
+#define PI_APP_RESULT_BASE ((PiResult) - 100)
 
 /* --------------------------------------------------------------------------
  * 128-bit GUID (the RFC 4122 / COM binary layout)
@@ -174,20 +174,24 @@ typedef struct PiGuid {
 
 /* Macro to define a GUID inline; the parameter names follow the RFC 4122 field
  * names (time_low, time_mid, time_hi_and_version, then the 8 trailing bytes). */
-#define PI_GUID(l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-    { (uint32_t)(l), (uint16_t)(w1), (uint16_t)(w2), \
-      { (uint8_t)(b1), (uint8_t)(b2), (uint8_t)(b3), (uint8_t)(b4), \
-        (uint8_t)(b5), (uint8_t)(b6), (uint8_t)(b7), (uint8_t)(b8) } }
+#define PI_GUID(l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8)                 \
+    {                                                                      \
+        (uint32_t)(l), (uint16_t)(w1), (uint16_t)(w2),                     \
+        {                                                                  \
+            (uint8_t)(b1), (uint8_t)(b2), (uint8_t)(b3), (uint8_t)(b4),    \
+                (uint8_t)(b5), (uint8_t)(b6), (uint8_t)(b7), (uint8_t)(b8) \
+        }                                                                  \
+    }
 
 /* Byte-for-byte equality over all 128 bits. NULL-safe (two NULLs are equal,
  * one NULL is not equal to anything). */
-static inline int pi_guid_equal(const PiGuid* a, const PiGuid* b)
+static inline int pi_guid_equal(PiGuid const* a, PiGuid const* b)
 {
-    if (!a || !b) return 0;
-    return a->data1 == b->data1
-        && a->data2 == b->data2
-        && a->data3 == b->data3
-        && memcmp(a->data4, b->data4, 8) == 0;
+    if (!a || !b)
+    {
+        return 0;
+    }
+    return a->data1 == b->data1 && a->data2 == b->data2 && a->data3 == b->data3 && memcmp(a->data4, b->data4, 8) == 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -204,7 +208,7 @@ typedef void* PiNativeWindow;
 typedef unsigned long PiNativeWindow;
 #endif
 
-#define PI_INVALID_WINDOW ((PiNativeWindow)0)
+#define PI_INVALID_WINDOW     ((PiNativeWindow)0)
 #define PI_IS_VALID_WINDOW(h) ((h) != PI_INVALID_WINDOW)
 
 /* --------------------------------------------------------------------------
@@ -225,32 +229,44 @@ typedef unsigned long PiNativeWindow;
  * vtables, expressed in C so it is stable everywhere.
  * -------------------------------------------------------------------------- */
 typedef struct IPiUnknownVtbl {
-    PiResult (PI_CALL *pi_query_interface)(void* this_ptr, const PiGuid* iid, void** out);
+    PiResult(PI_CALL* pi_query_interface)(void* this_ptr, PiGuid const* iid, void** out);
 
-    uint32_t (PI_CALL *pi_add_ref)(void* this_ptr);
+    uint32_t(PI_CALL* pi_add_ref)(void* this_ptr);
 
-    uint32_t (PI_CALL *pi_release)(void* this_ptr);
+    uint32_t(PI_CALL* pi_release)(void* this_ptr);
 } IPiUnknownVtbl;
 
 /* Complete struct, not a forward declaration: PiRefCountedBase embeds it by
  * value. */
 typedef struct IPiUnknown {
-    const IPiUnknownVtbl* lpVtbl;
+    IPiUnknownVtbl const* lpVtbl;
 } IPiUnknown;
 
 /* Inline helpers - NULL-safe wrappers. */
-static inline PiResult pi_iunknown_query_interface(IPiUnknown* self, const PiGuid* iid, void** out) {
-    if (!self || !self->lpVtbl || !self->lpVtbl->pi_query_interface) return PI_E_INVALIDARG;
+static inline PiResult pi_iunknown_query_interface(IPiUnknown* self, PiGuid const* iid, void** out)
+{
+    if (!self || !self->lpVtbl || !self->lpVtbl->pi_query_interface)
+    {
+        return PI_E_INVALIDARG;
+    }
     return self->lpVtbl->pi_query_interface((void*)self, iid, out);
 }
 
-static inline uint32_t pi_iunknown_add_ref(IPiUnknown* self) {
-    if (!self || !self->lpVtbl || !self->lpVtbl->pi_add_ref) return 0;
+static inline uint32_t pi_iunknown_add_ref(IPiUnknown* self)
+{
+    if (!self || !self->lpVtbl || !self->lpVtbl->pi_add_ref)
+    {
+        return 0;
+    }
     return self->lpVtbl->pi_add_ref((void*)self);
 }
 
-static inline uint32_t pi_iunknown_release(IPiUnknown* self) {
-    if (!self || !self->lpVtbl || !self->lpVtbl->pi_release) return 0;
+static inline uint32_t pi_iunknown_release(IPiUnknown* self)
+{
+    if (!self || !self->lpVtbl || !self->lpVtbl->pi_release)
+    {
+        return 0;
+    }
     return self->lpVtbl->pi_release((void*)self);
 }
 
@@ -264,7 +280,7 @@ static inline uint32_t pi_iunknown_release(IPiUnknown* self) {
  * a compiler objects to an unused file-scope `static const` in a header, define
  * it once in a .c of your own and declare `extern const` - the value is the
  * contract, not where the storage lives. */
-static const PiGuid PI_IID_UNKNOWN = PI_GUID(0x00000000, 0x0000, 0x0000,
+static PiGuid const PI_IID_UNKNOWN = PI_GUID(0x00000000, 0x0000, 0x0000,
                                              0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
 
 /* --------------------------------------------------------------------------
@@ -291,26 +307,32 @@ static const PiGuid PI_IID_UNKNOWN = PI_GUID(0x00000000, 0x0000, 0x0000,
 typedef void (*PiDestroyProc)(void* self);
 
 typedef struct PiRefCountedBase {
-    IPiUnknown          unk;
-    volatile uint32_t   ref_count;
-    PiDestroyProc       destroy;   /* called (once) when refcount hits 0 */
+    IPiUnknown unk;
+    uint32_t volatile ref_count;
+    PiDestroyProc destroy; /* called (once) when refcount hits 0 */
 } PiRefCountedBase;
 
 /* Initialize the ref-counted base with refcount 1 and no destroy callback. */
-static inline void pi_refcounted_init(PiRefCountedBase* base, const IPiUnknownVtbl* vtbl)
+static inline void pi_refcounted_init(PiRefCountedBase* base, IPiUnknownVtbl const* vtbl)
 {
-    if (!base) return;
+    if (!base)
+    {
+        return;
+    }
     base->unk.lpVtbl = vtbl;
     base->ref_count  = 1;
     base->destroy    = NULL;
 }
 
 /* Same, with a destroy callback for when the refcount reaches zero. */
-static inline void pi_refcounted_init_with_destroy(PiRefCountedBase* base,
-                                                   const IPiUnknownVtbl* vtbl,
-                                                   PiDestroyProc destroy)
+static inline void pi_refcounted_init_with_destroy(PiRefCountedBase*     base,
+                                                   IPiUnknownVtbl const* vtbl,
+                                                   PiDestroyProc         destroy)
 {
-    if (!base) return;
+    if (!base)
+    {
+        return;
+    }
     base->unk.lpVtbl = vtbl;
     base->ref_count  = 1;
     base->destroy    = destroy;
@@ -320,7 +342,10 @@ static inline void pi_refcounted_init_with_destroy(PiRefCountedBase* base,
 static inline uint32_t PI_CALL pi_refcounted_add_ref(void* this_ptr)
 {
     PiRefCountedBase* base = (PiRefCountedBase*)this_ptr;
-    if (!base) return 0;
+    if (!base)
+    {
+        return 0;
+    }
 #if PI_PLATFORM_WINDOWS
     return (uint32_t)_InterlockedIncrement((volatile long*)&base->ref_count);
 #else
@@ -331,19 +356,26 @@ static inline uint32_t PI_CALL pi_refcounted_add_ref(void* this_ptr)
 static inline uint32_t PI_CALL pi_refcounted_release(void* this_ptr)
 {
     PiRefCountedBase* base = (PiRefCountedBase*)this_ptr;
-    uint32_t ref;
-    if (!base) return 0;
+    uint32_t          ref;
+    if (!base)
+    {
+        return 0;
+    }
 #if PI_PLATFORM_WINDOWS
     ref = (uint32_t)_InterlockedDecrement((volatile long*)&base->ref_count);
 #else
     ref = (uint32_t)__sync_sub_and_fetch((volatile uint32_t*)&base->ref_count, 1);
 #endif
-    if (ref == 0) {
+    if (ref == 0)
+    {
         /* Invoke the owner's destroy callback instead of free(): objects may be
          * allocated with any allocator (C++ new, host allocator, static
          * storage). destroy may be NULL. */
         PiDestroyProc destroy = base->destroy;
-        if (destroy) destroy(this_ptr);
+        if (destroy)
+        {
+            destroy(this_ptr);
+        }
     }
     return ref;
 }
