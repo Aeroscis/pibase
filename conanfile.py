@@ -58,10 +58,18 @@ class PiBaseConan(ConanFile):
         self.info.clear()
 
     def package_info(self):
-        # Same target name CMakeDeps must generate as the install tree exports,
-        # so a consumer links `pi::base` whether it arrived via Conan or via
-        # find_package on an installed prefix. The family namespace is `pi::` and
-        # this library's member name is `base`.
-        self.cpp_info.set_property("cmake_target_name", "pi::base")
-        self.cpp_info.bindirs = []
-        self.cpp_info.libdirs = []
+        # A component, not merely package-level info. A consumer's component
+        # refers to this library as `pibase::base`, and Conan resolves that
+        # against the *components* of the package: with only package-level
+        # properties there is no component named `base`, so `pkg::pkg` points at
+        # something that does not exist - Conan accepts the reference and
+        # CMakeDeps then silently emits nothing for it, which shows up much later
+        # as a missing include directory in the consumer.
+        #
+        # The target name matters for both routes: CMakeDeps generates this
+        # component as `pi::base`, and the install tree exports the same name, so
+        # a consumer links `pi::base` either way.
+        base = self.cpp_info.components["base"]
+        base.set_property("cmake_target_name", "pi::base")
+        base.bindirs = []
+        base.libdirs = []
