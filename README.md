@@ -17,6 +17,10 @@ vocabulary that every PI library shares — and deliberately nothing else.
 
 ## The naming rule
 
+> The rule's authoritative statement is [`docs/naming.md`](docs/naming.md); what
+> follows is the summary, and the same rule is restated next to the code in
+> `include/pibase/pi_base.h`.
+
 PI is a family of libraries. Each member has its own name, its own headers and
 its own release cycle; the names above belong to none of them, because a result
 code, a GUID, a window handle and an interface root mean the same thing in every

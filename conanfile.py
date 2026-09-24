@@ -58,5 +58,10 @@ class PiBaseConan(ConanFile):
         self.info.clear()
 
     def package_info(self):
+        # Same target name CMakeDeps must generate as the install tree exports,
+        # so a consumer links `pi::base` whether it arrived via Conan or via
+        # find_package on an installed prefix. The family namespace is `pi::` and
+        # this library's member name is `base`.
+        self.cpp_info.set_property("cmake_target_name", "pi::base")
         self.cpp_info.bindirs = []
         self.cpp_info.libdirs = []

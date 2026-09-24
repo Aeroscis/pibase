@@ -21,7 +21,10 @@ include(CMakePackageConfigHelpers)
 # gives consumers headers and compile features and nothing to link against.
 # ---------------------------------------------------------------------------
 add_library(pibase INTERFACE)
-add_library(pibase::pibase ALIAS pibase)
+# The family namespace is `pi::` and this library's member name is `base`, so
+# consumers link `pi::base` - the same shape as the other members' targets.
+add_library(pi::base ALIAS pibase)
+set_target_properties(pibase PROPERTIES EXPORT_NAME base)
 
 target_include_directories(pibase INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -41,7 +44,7 @@ set(PIBASE_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/pibase")
 
 install(EXPORT pibaseTargets
     FILE pibaseTargets.cmake
-    NAMESPACE pibase::
+    NAMESPACE pi::
     DESTINATION "${PIBASE_CMAKE_INSTALL_DIR}")
 
 configure_package_config_file(
