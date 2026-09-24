@@ -1,0 +1,73 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "generic (no conan) - Visual Studio 2022, x64",
+      "description": "Windows: 不依赖 conan 的通用配置。构建目录 build/generic。",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/generic",
+      "cacheVariables": {
+        "PI_BASE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "default-unix",
+      "displayName": "generic (no conan) - Ninja",
+      "description": "非 Windows：Ninja + 单配置 Debug。",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/generic",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PI_BASE_BUILD_TESTS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "configuration": "Debug"
+    },
+    {
+      "name": "default-unix",
+      "configurePreset": "default-unix"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "default-unix",
+      "configurePreset": "default-unix",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

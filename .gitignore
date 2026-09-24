@@ -1,0 +1,43 @@
+build/
+build-*/
+bin/
+lib/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+!CMakeLists.txt
+!cmake/
+!cmake/**
+!cmake/**/*.cmake
+*.dll
+*.exe
+*.lib
+*.exp
+*.ilk
+*.pdb
+*.so
+*.dylib
+*.a
+conan_imports_manifest.txt
+conaninfo.txt
+conanbuildinfo.*
+obj/
+target/
+# conan 生成的用户预设文件：它 include 生成器目录里的 CMakePresets.json，
+# 该文件在干净检出里不存在会让"读取预设"整体失败（CMake 明确报 File not found），
+# 因此不入库 —— 通用预设请写在仓库内的 CMakePresets.json（W-09）。
+CMakeUserPresets.json
+# FFI 示例的语言侧产物（cargo / dotnet）
+__pycache__/
+*.pyc
+.vs/
+.idea/
+.vscode/
+*.user
+
+# 工具草稿：AI/助手会话的临时诊断输出与记忆文件，不入库
+.workbuddy/
+
+# 验证脚本的生成产物（脚本本身在 scripts/ 下，正常入库）
+scripts/out/
