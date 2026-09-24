@@ -61,6 +61,21 @@ extern "C" {
 #endif
 
 /* --------------------------------------------------------------------------
+ * Version of this header's contract
+ *
+ * Every other member can be asked its version at run time - a DLL carries one.
+ * This layer produces no binary, so the only way to tell which revision of the
+ * rule a build actually used is a macro. That matters because the same header
+ * reaches consumers two ways (installed into a prefix, or built as a subproject
+ * from a checkout), and a mismatch between them is otherwise invisible: the
+ * build simply succeeds against the other copy.
+ * -------------------------------------------------------------------------- */
+#define PI_BASE_VERSION_MAJOR  0
+#define PI_BASE_VERSION_MINOR  1
+#define PI_BASE_VERSION_PATCH  0
+#define PI_BASE_VERSION_STRING "0.1.0"
+
+/* --------------------------------------------------------------------------
  * Platform detection
  *
  * Only the macro matching the current platform is defined; the others stay
